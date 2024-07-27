@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'history.dart';
 import '../app_state.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,29 +22,6 @@ class HomeScreenState extends State<HomeScreen> {
     {'name': 'English', 'flag': '🇬🇧'},
     {'name': 'Español', 'flag': '🇪🇸'},
   ];
-
-  final Map<String, Map<String, String>> translations = {
-    'English': {
-      'title': 'Weight Calculator',
-      'heightHint': 'Height (m)',
-      'weightHint': 'Weight (kg)',
-      'calculate': 'Calculate',
-      'overweight': 'You\'re overweight',
-      'normalWeight': 'You have normal weight',
-      'underweight': 'You\'re underweight',
-      'error': 'Please enter valid values',
-    },
-    'Español': {
-      'title': 'Calculadora de Peso',
-      'heightHint': 'Altura (m)',
-      'weightHint': 'Peso (kg)',
-      'calculate': 'Calcular',
-      'overweight': 'Tienes sobrepeso',
-      'normalWeight': 'Tienes un peso normal',
-      'underweight': 'Tienes bajo peso',
-      'error': 'Por favor ingrese valores válidos',
-    },
-  };
 
   void _handleLanguageChange(String? newValue) {
     if (newValue != null) {
@@ -68,7 +46,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   void _updateResultText() {
     final appState = Provider.of<AppState>(context, listen: false);
-    final currentTranslations = translations[appState.selectedLanguage]!;
+    final currentTranslations = appState.translations[appState.selectedLanguage]!;
 
     if (_bmiResult > 25) {
       _textResult = currentTranslations['overweight']!;
@@ -82,7 +60,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final currentTranslations = translations[appState.selectedLanguage]!;
+    final currentTranslations = appState.translations[appState.selectedLanguage]!;
 
     return Scaffold(
       appBar: AppBar(
@@ -195,6 +173,7 @@ class HomeScreenState extends State<HomeScreen> {
                         }
                         _bmiResult = w / (h * h);
                         _updateResultText();
+                        appState.addHistoryEntry(_heightController.text, _weightController.text, _bmiResult.toStringAsFixed(2));
                       } catch (e) {
                         _showErrorNotification(currentTranslations['error']!);
                       }
@@ -251,7 +230,7 @@ class HomeScreenState extends State<HomeScreen> {
                     });
                   },
                   style: ButtonStyle(
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                         side: BorderSide(color: appState.isDarkTheme ? Colors.white : Colors.black),
@@ -297,6 +276,17 @@ class HomeScreenState extends State<HomeScreen> {
                             color: appState.isDarkTheme ? Colors.white : Colors.black,
                           ),
                         ),
+                      ),
+                    ),
+                    Flexible(
+                      child: IconButton(
+                        icon: Icon(Icons.history, color: appState.isDarkTheme ? Colors.white : Colors.black),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                          );
+                        },
                       ),
                     ),
                   ],
